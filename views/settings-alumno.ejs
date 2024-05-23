@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Site Styles -->
+    <link href="css/styleSettingsScreen.css" rel="stylesheet">
+
+    <title>Quiz Kids</title>
+
+    <!-- Fonts, Kits and Bootstrap -->
+    <%- include("partials/headers.ejs") %>
+  </head>
+
+  <!-- html body -->
+  <body>
+    <!-- navbar -->
+    <%- include("partials/navbar.ejs") %>
+
+    <!-- Settings -->
+    <div class="container-fluid">
+      <div class="d-grid gap-2 col-md-3 col-6 mx-auto mt-5">
+          <form>
+              <div class="my-3 text-center">
+                  <a href="#" class="form-control fw-bold" id="sign-out">Switch to professor</a>
+              </div>      
+              <div class="my-3 text-center">
+                  <a href="/" class="form-control fw-bold" id="sign-out">Log out</a>
+              </div>      
+              <div class="my-3 text-center">
+                  <a href="#" class="form-control fw-bold" id="sign-out">Delete profile</a>
+              </div>                 
+          </form>
+      </div>
+    </div>
+    <!-- bootstrap js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+</html>
