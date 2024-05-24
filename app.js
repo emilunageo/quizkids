@@ -13,47 +13,39 @@ app.use(express.static('public'));
 
 // Motor de plantillas para las vistas
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs'); // Asumiendo que estás usando EJS
+app.set('view engine', 'ejs');
 
-// Ruta inicial que sirve el index.html
+// Rutas
 app.get('/', (req, res) => {
-  res.render(path.join(__dirname, 'views', 'index.ejs'));
+  res.render('index');
 });
 
 app.get('/signup', (req, res) => {
-  res.render(path.join(__dirname, 'views', 'signup.ejs'));
+  res.render('signup');
 });
 
 app.get('/login', (req, res) => {
-  res.render(path.join(__dirname, 'views', 'login.ejs'));
+  res.render('login');
 });
 
 app.get('/student', (req, res) => {
-  res.render(path.join(__dirname, 'views', 'student.ejs'));
+  res.render('student');
 });
 
 app.get('/profile', (req, res) => {
-  res.render(path.join(__dirname, 'views', 'profile.ejs'));
+  res.render('profile');
 });
 
 app.get('/settings', (req, res) => {
-  res.render(path.join(__dirname, 'views', 'settings-alumno.ejs'));
+  res.render('settings-alumno');
 });
-
-/* app.get('/log-reg', (req, res) => {
-  res.render(path.join(__dirname, 'views', 'log-reg.ejs'));
-}); */
 
 app.get('/ranking', (req, res) => {
-  res.render(path.join(__dirname, 'views', 'ranking.ejs'));
+  res.render('ranking');
 });
 
-/* app.get('/h', (req, res) => {
-  res.render(path.join(__dirname, 'views', 'learnIt.ejs'));
-}); */
-
 app.get('/testit', (req, res) => {
-  res.render(path.join(__dirname, 'views', 'test-it.ejs'));
+  res.render('test-it');
 });
 
 // Inicia el servidor
