@@ -7,7 +7,7 @@
     <!-- Fonts, Kits and Bootstrap -->
     <%- include("partials/headers.ejs") %>
     <!-- Site Styles -->
-    <link href="css/styleLandingPage.css" rel="stylesheet">
+    <link href="css/styleLogin.css" rel="stylesheet">
 
     <title>Login</title>
   </head>
@@ -24,21 +24,23 @@
               <h1 class="card-title text-center mt-3 mb-5">
                 Log in
               </h1>
+              <form action="/login" method="post">
               <div class="mb-3">
-                <label for="inputEmail" class="form-label">Email adress</label>
-                <input type="email" class="form-control" id="inputEmail" placeholder="Type your email">
+                <label for="correo" class="form-label">Email adress</label>
+                <input type="email" class="form-control" name="correo" id="inputEmail" placeholder="Type your email" required>
               </div>
               <div class="mb-3">
-                <label for="inputPassword" class="form-label">Password</label>
-                <input type="password" class="form-control" id="inputPassword" placeholder="Type your password">
+                <label for="contrasena" class="form-label">Password</label>
+                <input type="password" class="form-control" name="contrasena" id="inputPassword" placeholder="Type your password" required>
                 <div class="mt-2">
                   <input type="checkbox" class="form-check-input" id="showPasswordCheck" onclick="showPassword()">
                   <label for="showPasswordCheck" class="form-check-label">Show password</label>
                 </div>
               </div>
               <div class="d-grid mx-auto mt-5">
-                <button type="button" class="btn" id="loginButton">Login</button>
+                <button type="submit" class="btn" id="loginButton">Login</button>
               </div>
+              </form>
               <ul class="list-group list-group-flush">
                 <li class="list-group-item">
                   <p class="text-center mt-5">Dont have an account?</p>

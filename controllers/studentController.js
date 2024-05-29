@@ -1,14 +1,15 @@
-const connection = require('../databases/connection'); // Asumiendo que tienes un archivo connection.js
+const studentController = {};
 
-exports.registrarAlumno = (req, res) => {
-  const { nombre, apellido, correo, contraseña } = req.body;
-  const query = `INSERT INTO Alumnos (Nombre, Apellido, Correo, Contraseña) VALUES (?, ?, ?, ?)`;
-
-  connection.query(query, [nombre, apellido, correo, contraseña], (err, results) => {
-    if (err) {
-      console.error('Error en la base de datos:', err);
-      return res.status(500).send('Error al registrar el alumno: ' + err.message);
-    }
-    res.redirect('/log-reg');
-  });
+studentController.home = (req, res) => {
+    res.render('student/index', { user: req.session.userId });
 };
+
+studentController.perfil = (req, res) => {
+    res.render('student/perfil', { user: req.session.userId });
+};
+
+studentController.ranking = (req, res) => {
+    res.render('student/ranking', { user: req.session.userId });
+};
+
+module.exports = studentController;
