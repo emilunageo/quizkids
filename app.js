@@ -1,3 +1,5 @@
+const { exec } = require('child_process');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 // Descripción: Archivo principal de la aplicación.
 // En este archivo se configuran las rutas y se inicia el servidor.
 const express = require('express');
@@ -92,6 +94,26 @@ app.get('/student-settings', checkUserType('alumno'), (req, res) => {
   res.render('student/settings');
 });
 
+app.get('/learnit', (req, res) => {
+  const scriptPath = path.join('ia', 'app.py');
+  const command = `streamlit run ${scriptPath}`;
+
+  exec(command, (error, stdout, stderr) => {
+      if (error) {
+          console.error(`Error ejecutando el comando: ${error.message}`);
+          res.status(500).send('Error ejecutando el comando');
+          return;
+      }
+
+      if (stderr) {
+          console.error(`stderr: ${stderr}`);
+      }
+      console.log(`stdout: ${stdout}`);
+      res.send('Streamlit app is running');
+  });
+  setTimeout(() => {
+  res.render('student/index') }, 2000); // Espera de 4 segundos;
+});
 
 // Rutas para profesor
 app.get('/professor', checkUserType('profesor'), (req, res) => {
