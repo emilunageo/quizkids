@@ -2,7 +2,9 @@
 // En este archivo se configuran las rutas y se inicia el servidor.
 const express = require('express');
 const path = require('path');
-
+const bodyParser = require('body-parser');
+const mysql = require("mysql");
+const { createPool } = require('mysql');
 // Rutas de usuarios y autenticación
 const session = require('express-session');
 const userRoutes = require('./routes/userRoutes');
@@ -11,6 +13,7 @@ const authRoutes = require('./routes/authRoutes');
 // Rutas específicas de alumnos y profesores
 const studentRoutes = require('./routes/studentRoutes');
 const professorRoutes = require('./routes/professorRoutes');
+
 //const classRoutes = require('./routes/classRoutes');
 
 // Crear la aplicación de Express
@@ -20,6 +23,7 @@ const port = 3000; // Puerto en el que correrá el servidor
 // Middleware para parsear el cuerpo de las peticiones HTTP (req.body) en JSON y texto plano (req.text).
 // Está línea es necesaria para poder recibir datos de formularios HTML.
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
 // Middleware para parsear el cuerpo de las peticiones HTTP (req.body) en JSON.
 app.use(express.json());
 
@@ -80,6 +84,36 @@ app.get('/student', checkUserType('alumno'), (req, res) => {
   res.render('student/index');
 });
 
+const pool = createPool({
+  host: "localhost",
+  user: "root",
+  password: "root",
+  database: "quizkids",
+  port: "8889",
+
+})
+
+var Quizes = [] ;
+
+pool.query(`select * from Quizes;`, function(err, result, fields) {
+
+  if (err) {
+      return console.log(err);
+  }
+  result.forEach((row) => {
+      Quizes.push({
+        nombre : row.nombre , 
+        id : row.id_quiz
+      });
+  });
+})
+
+
+app.get('/testit', checkUserType('alumno'), (req, res) => {
+  res.render('student/testit' , { Quizes : Quizes });
+});
+
+
 app.get('/student-profile', checkUserType('alumno'), (req, res) => {
   res.render('student/profile');
 });
@@ -118,3 +152,102 @@ app.get('/professor-settings', checkUserType('profesor'), (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
 });
+
+app.set('view engine', 'ejs');
+app.use(bodyParser.urlencoded({ extended: true }));
+
+
+var questions = [];
+var respuestas = [];
+var resumen = [];
+
+
+app.get('/take-quiz', checkUserType('alumno'), (req, res) => {
+
+  const quizId = req.query.quizId;
+  console.log(quizId)
+
+  pool.query(`SELECT * FROM Preguntas WHERE id_quiz = '${quizId}';`, function(err, result, fields) {
+    if (err) {
+        return console.log(err);
+    }
+    result.forEach((row) => {
+        questions.push(([row.contenido, row.id_pregunta]));
+    });
+
+  });
+  
+  pool.query(`SELECT * FROM Respuestas WHERE id_quiz = '${quizId}';`, function(err, result, fields) {
+    if (err) {
+        return console.log(err);
+    }
+    result.forEach((row) => {
+        respuestas.push(([row.id_pregunta, row.contenido, row.valor]));
+    });
+
+  res.render('student/quiz' , { questions , respuestas });
+
+});
+
+});
+
+app.post('/submit-quiz', (req, res) => {
+  const score = calculateScore(req.body);
+  res.render('student/result', { score });
+  var promedio = 0 ;
+
+  for (var i = 0 ; i < questions.length ; i++ ){
+      resumen.push([questions[i], req.body[i]]);
+      if (req.body.confidence_level[i] === "High"){
+        promedio += 3;
+      } else if (req.body.confidence_level[i] === "Medium"){
+        promedio += 2;
+      } else if (req.body.confidence_level[i] === "Low"){
+        promedio += 1;
+      }
+  }
+  promedio /= questions.length;
+ // resumen.push(`promedio : ${promedio}`);
+ // resumen.push(`score : ${score}`);
+  console.log(resumen);
+
+  const insertResult = (id_alumno, id_quiz, puntaje, nivel_confianza, resultados) => {
+    const query = `
+      INSERT INTO Resultados (id_alumno, id_quiz, puntaje, nivel_confianza, resultados)
+      VALUES (?, ?, ?, ?, ?);
+    `;
+  
+    const values = [id_alumno, id_quiz, puntaje, nivel_confianza, resultados];
+  
+    pool.query(query, values, (error, results, fields) => {
+      if (error) {
+        console.error('Error ejecutando la consulta', error);
+        return;
+      }
+      console.log('Resultado insertado:', results.insertId);
+      // Cerrar la conexión del pool
+      pool.end((err) => {
+        if (err) {
+          console.error('Error cerrando la conexión', err);
+        }
+      });
+    });
+  };
+  insertResult(1, 1, score, promedio, `${resumen}`);
+
+
+
+  });
+
+
+function calculateScore(userAnswers) {
+  let score = 0; 
+  for (const answer in userAnswers) {
+      if (userAnswers[answer] === '1') {
+          score++; 
+      }
+  }
+  return score;
+}
+
+
