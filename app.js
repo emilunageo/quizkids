@@ -164,7 +164,7 @@ var resumen = [];
 
 app.get('/take-quiz', checkUserType('alumno'), (req, res) => {
 
-  const quizId = req.query.quizId;
+  quizId = req.query.quizId;
   console.log(quizId)
 
   pool.query(`SELECT * FROM Preguntas WHERE id_quiz = '${quizId}';`, function(err, result, fields) {
@@ -189,6 +189,12 @@ app.get('/take-quiz', checkUserType('alumno'), (req, res) => {
 
 });
 
+});
+
+app.use(function(req, res, next) {
+  res.locals.userId = req.session.userId;
+
+  next();
 });
 
 app.post('/submit-quiz', (req, res) => {
@@ -233,7 +239,42 @@ app.post('/submit-quiz', (req, res) => {
       });
     });
   };
-  insertResult(1, 1, score, promedio, `${resumen}`);
+
+  const getid_alumno = (id_usuario) => {
+    return new Promise((resolve, reject) => {
+      const query = `SELECT id_alumno 
+                     FROM Alumnos 
+                     WHERE id_usuario = ?`;
+      const values = [id_usuario];
+      
+      pool.query(query, values, (error, results, fields) => {
+        if (error) {
+          console.error('Error ejecutando la consulta', error);
+          reject(error);
+          return;
+        }
+        if (results.length > 0) {
+          // Accede al primer resultado (asumiendo que solo esperas uno)
+          const id_alumno = results[0].id_alumno;
+          resolve(id_alumno);
+        } else {
+          reject(new Error('No se encontró ningún alumno con el ID de usuario proporcionado.'));
+        }
+      });
+    });
+  };
+  
+
+  id = res.locals.userId;
+  getid_alumno(id)
+  .then(id_alumno => {
+    insertResult(id_alumno , quizId, score, promedio, `${resumen}`);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+
+
 
 
 

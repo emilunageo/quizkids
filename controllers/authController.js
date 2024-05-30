@@ -1,8 +1,8 @@
 const User = require("../models/user");
 const Alumno = require("../models/student");
 const Profesor = require("../models/professor");
-
 const authController = {};
+let userId = null;
 
 authController.register = async (req, res) => {
   try {
@@ -18,7 +18,6 @@ authController.register = async (req, res) => {
 
     User.add(userData, (result) => {
       const userId = result.insertId;
-
       if (req.body.tipo_de_usuario === "alumno") {
         const alumnoData = { id_usuario: userId, nombre: req.body.nombre };
         Alumno.add(alumnoData, () => {
@@ -45,16 +44,14 @@ authController.login = async (req, res) => {
     console.log("Correo:", correo);
     console.log("Contraseña:", contrasena);
 
+
     User.findByEmail(correo, async (user) => {
       console.log("Usuario encontrado:", user);
-
-      if (!user) {
-        return res.status(401).send("Correo o contraseña incorrectos");
-      }
-
+      res.locals.userId = user.id_usuario;
+      //exports.userId = id_usuario;
       console.log(
         "Contraseña del usuario en la base de datos:",
-        user.contrasena
+        user.contrasena,
       );
 
       if (contrasena) {
