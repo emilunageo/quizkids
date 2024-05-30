@@ -1,164 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Quiz</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            margin: 0 auto;
-        }
-        label[for="nombreQuiz"], label[for="categoria"] {
-            display: inline-block;
-            margin-top: 1rem;
-        }
-        label {
-            display: block;
-            margin-top: 1rem;
-        }
-        input, select, button {
-            margin-top: 0.5rem;
-            padding: 0.5rem;
-        }
-        button {
-            width: 100%;
-            cursor: pointer;
-        }
-        button[type="submit"] {
-            background-color: #6b6b6b;
-            color: white;
-        }
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        #estados {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 1rem;
-        }
-        #estados div {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 1px solid black;
-            border-radius: 50%;
-            width: 2rem;
-            height: 2rem;
-            text-align: center;
-        }
-        .checked {
-            background-color: #6b6b6b;
-            color: white;
-            cursor: pointer;
-        }
-        .not-checked {
-            background-color: transparent;
-            color: black;
-        }
-        #quiz {
-            display: flex;
-            width: 50%;
-            margin: 0 auto;
-            justify-content: center;
-        }
-        /* Styles for the modal */
-        #modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0,0.4);
-        }
-        #modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-        }
-    </style>
-</head>
-<body>
+    <!-- Site Styles -->
+    <link href="../css/teacher/styleQuiz.css" rel="stylesheet" />
 
-    <a href="/professor">Regresar</a>
-    <div id="quiz">
-        <form id="quiz-form">
-            <label for="nombreQuiz">Nombre del quiz</label>
-            <input type="text" name="nombreQuiz" id="nombreQuiz">
-            <label for="categoria">Categoría</label>
-            <select name="categoria" id="categoria">
-                <option value="matematicas">Matemáticas</option>
-                <option value="ciencias">Ciencias</option>
-                <option value="historia">Historia</option>
-                <option value="geografia">Geografía</option>
-                <option value="espanol">Español</option>
-            </select>
-            <label for="pregunta">Pregunta</label>
-            <input type="text" name="pregunta" id="pregunta">
-            <label for="respuesta1">Respuesta 1</label>
-            <input type="text" name="respuesta1" id="respuesta1">
-            <label for="respuesta2">Respuesta 2</label>
-            <input type="text" name="respuesta2" id="respuesta2">
-            <label for="respuesta3">Respuesta 3</label>
-            <input type="text" name="respuesta3" id="respuesta3">
-    
-            <label for="respuestaCorrecta">¿Cuál es la respueta correcta?</label>
-            <select name="respuestaCorrecta" id="respuestaCorrecta">
-                <option value="respuesta1">Respuesta 1</option>
-                <option value="respuesta2">Respuesta 2</option>
-                <option value="respuesta3">Respuesta 3</option>
-            </select>
+    <title>Quiz Kids</title>
 
-            <button type="button" id="add-question">Añadir pregunta</button>
-            
-            <div id="estados">
-                <div id="pregunta1" class="not-checked">1</div>
-                <div id="pregunta2" class="not-checked">2</div>
-                <div id="pregunta3" class="not-checked">3</div>
-                <div id="pregunta4" class="not-checked">4</div>
-                <div id="pregunta5" class="not-checked">5</div>
-                <div id="pregunta6" class="not-checked">6</div>
-                <div id="pregunta7" class="not-checked">7</div>
-                <div id="pregunta8" class="not-checked">8</div>
-                <div id="pregunta9" class="not-checked">9</div>
-                <div id="pregunta10" class="not-checked">10</div>
+    <!-- Fonts, Kits and Bootstrap -->
+    <%- include("../partials/headers.ejs") %>
+  </head>
+  <body>
+    <%- include("../partials/professor/navbar.ejs") %>
+    <div class="container">
+        <div class="row justify-content-center align-items-center">
+          <div class="col-auto">
+            <div class="card">
+              <div class="card-body text-center">
+                <div id="quiz">
+                    <form id="quiz-form">
+                      <label for="nombreQuiz" class="form-label">Nombre del quiz</label>
+                      <input type="text" class="form-input text-center" name="nombreQuiz" id="nombreQuiz" />
+                      <label for="categoria" class="form-label">Categoría</label>
+                      <select name="categoria" id="categoria" class="text-center">
+                        <option disabled selected value="">Selecciona una opcion</option>
+                        <option value="matematicas">Matemáticas</option>
+                        <option value="ciencias">Ciencias</option>
+                        <option value="historia">Historia</option>
+                        <option value="geografia">Geografía</option>
+                        <option value="espanol">Español</option>
+                      </select>
+                      <label for="pregunta" class="form-label">Pregunta</label>
+                      <input type="text" class="form-input text-center" name="pregunta" id="pregunta" />
+                      <label for="respuesta1" class="form-label">Respuesta 1</label>
+                      <input type="text" class="form-input text-center" name="respuesta1" id="respuesta1" />
+                      <label for="respuesta2" class="form-label">Respuesta 2</label>
+                      <input type="text" class="form-input text-center" name="respuesta2" id="respuesta2" />
+                      <label for="respuesta3" class="form-label">Respuesta 3</label>
+                      <input type="text" class="form-input text-center" name="respuesta3" id="respuesta3" />
+              
+                      <label for="respuestaCorrecta" class="form-label">¿Cuál es la respueta correcta?</label>
+                      <select name="respuestaCorrecta" id="respuestaCorrecta" class="text-center">
+                        <option value="respuesta1">Respuesta 1</option>
+                        <option value="respuesta2">Respuesta 2</option>
+                        <option value="respuesta3">Respuesta 3</option>
+                      </select>
+              
+                      <button type="button" id="add-question" class="my-5">Añadir pregunta</button>
+              
+                      <div id="estados">
+                        <div id="pregunta1" class="not-checked">1</div>
+                        <div id="pregunta2" class="not-checked">2</div>
+                        <div id="pregunta3" class="not-checked">3</div>
+                        <div id="pregunta4" class="not-checked">4</div>
+                        <div id="pregunta5" class="not-checked">5</div>
+                        <div id="pregunta6" class="not-checked">6</div>
+                        <div id="pregunta7" class="not-checked">7</div>
+                        <div id="pregunta8" class="not-checked">8</div>
+                        <div id="pregunta9" class="not-checked">9</div>
+                        <div id="pregunta10" class="not-checked">10</div>
+                      </div>
+              
+                      <button type="submit" id="create-quiz" class="mt-3" disabled>Crear Quiz</button>
+                    </form>
+                  </div>
+              
+                  <div id="modal">
+                    <div id="modal-content">
+                      <h2>Editar Pregunta</h2>
+                      <label for="edit-pregunta" class="form-label">Pregunta</label>
+                      <input type="text" class="form-input" id="edit-pregunta" />
+                      <label for="edit-respuesta1" class="form-label">Respuesta 1</label>
+                      <input type="text" class="form-input" id="edit-respuesta1" />
+                      <label for="edit-respuesta2" class="form-label">Respuesta 2</label>
+                      <input type="text" class="form-input" id="edit-respuesta2" />
+                      <label for="edit-respuesta3" class="form-label">Respuesta 3</label>
+                      <input type="text" class="form-input" id="edit-respuesta3" />
+                      <label for="edit-respuestaCorrecta" class="form-label">¿Cuál es la respuesta correcta?</label>
+                      <select id="edit-respuestaCorrecta">
+                        <option value="respuesta1">Respuesta 1</option>
+                        <option value="respuesta2">Respuesta 2</option>
+                        <option value="respuesta3">Respuesta 3</option>
+                      </select>
+                      <button type="button" id="save-edit">Guardar</button>
+                    </div>
+                  </div>
+              </div>
             </div>
-    
-            <button type="submit" id="create-quiz" disabled>Crear Quiz</button>
-        </form>
-    </div>
-
-    <div id="modal">
-        <div id="modal-content">
-            <h2>Editar Pregunta</h2>
-            <label for="edit-pregunta">Pregunta</label>
-            <input type="text" id="edit-pregunta">
-            <label for="edit-respuesta1">Respuesta 1</label>
-            <input type="text" id="edit-respuesta1">
-            <label for="edit-respuesta2">Respuesta 2</label>
-            <input type="text" id="edit-respuesta2">
-            <label for="edit-respuesta3">Respuesta 3</label>
-            <input type="text" id="edit-respuesta3">
-            <label for="edit-respuestaCorrecta">¿Cuál es la respuesta correcta?</label>
-            <select id="edit-respuestaCorrecta">
-                <option value="respuesta1">Respuesta 1</option>
-                <option value="respuesta2">Respuesta 2</option>
-                <option value="respuesta3">Respuesta 3</option>
-            </select>
-            <button type="button" id="save-edit">Guardar</button>
+          </div>
         </div>
     </div>
+    
     <script src="../../js/logicaCrearQuiz.js"></script>
-</body>
+  </body>
 </html>
