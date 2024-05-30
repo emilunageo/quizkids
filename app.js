@@ -10,6 +10,7 @@ const session = require('express-session');
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
 
+
 // Rutas específicas de alumnos y profesores
 const studentRoutes = require('./routes/studentRoutes');
 const professorRoutes = require('./routes/professorRoutes');
@@ -161,11 +162,17 @@ var questions = [];
 var respuestas = [];
 var resumen = [];
 
+app.use(session({
+  secret: '123', // replace with a strong secret key
+  resave: false,
+  saveUninitialized: true
+}));
 
 app.get('/take-quiz', checkUserType('alumno'), (req, res) => {
 
   quizId = req.query.quizId;
-  console.log(quizId)
+  req.session.quizId = quizId; // Store quizId in the session
+
 
   pool.query(`SELECT * FROM Preguntas WHERE id_quiz = '${quizId}';`, function(err, result, fields) {
     if (err) {
@@ -263,12 +270,13 @@ app.post('/submit-quiz', (req, res) => {
       });
     });
   };
-  
+
+   const quizIdd = req.session.quizId; // Retrieve quizId from the session
 
   id = res.locals.userId;
   getid_alumno(id)
   .then(id_alumno => {
-    insertResult(id_alumno , quizId, score, promedio, `${resumen}`);
+    insertResult(id_alumno , quizIdd, score, promedio, `${resumen}`);
   })
   .catch(error => {
     console.error('Error:', error);
