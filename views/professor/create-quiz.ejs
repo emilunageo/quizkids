@@ -3,106 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/teacher/styleCreateQuiz.css">
     <title>Create Quiz</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            margin: 0 auto;
-        }
-        label[for="nombreQuiz"], label[for="categoria"] {
-            display: inline-block;
-            margin-top: 1rem;
-        }
-        label {
-            display: block;
-            margin-top: 1rem;
-        }
-        input, select, button {
-            margin-top: 0.5rem;
-            padding: 0.5rem;
-        }
-        button {
-            width: 100%;
-            cursor: pointer;
-        }
-        button[type="submit"] {
-            background-color: #6b6b6b;
-            color: white;
-        }
-
-        #estados {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 1rem;
-        }
-        #estados div {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 1px solid black;
-            border-radius: 50%;
-            width: 2rem;
-            height: 2rem;
-            text-align: center;
-        }
-        .checked {
-            background-color: #6b6b6b;
-            color: white;
-            cursor: pointer;
-        }
-        .not-checked {
-            background-color: transparent;
-            color: black;
-        }
-        #quiz {
-            display: flex;
-            width: 50%;
-            margin: 0 auto;
-            justify-content: center;
-        }
-        /* Styles for the modal */
-        #modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0,0.4);
-        }
-        #modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-        }
-    </style>
 </head>
 <body>
 
     <a href="/professor">Regresar</a>
     <div id="quiz">
-        <form id="quiz-form">
+        <form id="quiz-form" method="POST" action="/quizzes/create">
+            <input type="hidden" name="id_clase" value="<%= id_clase %>"> <!-- Campo oculto para id_clase -->
             <label for="nombreQuiz">Nombre del quiz</label>
             <input type="text" name="nombreQuiz" id="nombreQuiz">
             <label for="categoria">Categoría</label>
             <select name="categoria" id="categoria">
-                <option value="matematicas">Matemáticas</option>
-                <option value="ciencias">Ciencias</option>
-                <option value="historia">Historia</option>
-                <option value="geografia">Geografía</option>
-                <option value="espanol">Español</option>
+                <option value="1">Matemáticas</option>
+                <option value="2">Ciencias</option>
+                <option value="3">Historia</option>
+                <option value="4">Geografía</option>
+                <option value="5">Español</option>
             </select>
             <label for="pregunta">Pregunta</label>
             <input type="text" name="pregunta" id="pregunta">
@@ -115,9 +33,9 @@
     
             <label for="respuestaCorrecta">¿Cuál es la respueta correcta?</label>
             <select name="respuestaCorrecta" id="respuestaCorrecta">
-                <option value="respuesta1">Respuesta 1</option>
-                <option value="respuesta2">Respuesta 2</option>
-                <option value="respuesta3">Respuesta 3</option>
+                <option value="1">Respuesta 1</option>
+                <option value="2">Respuesta 2</option>
+                <option value="3">Respuesta 3</option>
             </select>
 
             <button type="button" id="add-question">Añadir pregunta</button>
@@ -135,7 +53,7 @@
                 <div id="pregunta10" class="not-checked">10</div>
             </div>
     
-            <button type="submit" id="create-quiz" disabled>Crear Quiz</button>
+            <button type="submit" id="create-quiz">Crear Quiz</button>
         </form>
     </div>
 
@@ -152,9 +70,9 @@
             <input type="text" id="edit-respuesta3">
             <label for="edit-respuestaCorrecta">¿Cuál es la respuesta correcta?</label>
             <select id="edit-respuestaCorrecta">
-                <option value="respuesta1">Respuesta 1</option>
-                <option value="respuesta2">Respuesta 2</option>
-                <option value="respuesta3">Respuesta 3</option>
+                <option value="1">Respuesta 1</option>
+                <option value="2">Respuesta 2</option>
+                <option value="3">Respuesta 3</option>
             </select>
             <button type="button" id="save-edit">Guardar</button>
         </div>

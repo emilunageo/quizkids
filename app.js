@@ -11,14 +11,15 @@ const authRoutes = require('./routes/authRoutes');
 // Rutas específicas de alumnos y profesores
 const studentRoutes = require('./routes/studentRoutes');
 const professorRoutes = require('./routes/professorRoutes');
-//const classRoutes = require('./routes/classRoutes');
+const classRoutes = require('./routes/classes'); // Importar la nueva ruta
+const quizRoutes = require('./routes/quizzes'); // Importar la nueva ruta
 
 // Crear la aplicación de Express
 const app = express();
 const port = 3000; // Puerto en el que correrá el servidor
 
 // Middleware para parsear el cuerpo de las peticiones HTTP (req.body) en JSON y texto plano (req.text).
-// Está línea es necesaria para poder recibir datos de formularios HTML.
+// Esta línea es necesaria para poder recibir datos de formularios HTML.
 app.use(express.urlencoded({ extended: true }));
 // Middleware para parsear el cuerpo de las peticiones HTTP (req.body) en JSON.
 app.use(express.json());
@@ -33,6 +34,7 @@ app.use(session({
 function checkUserType(tipo) {
   return function (req, res, next) {
     if (req.session.tipoDeUsuario === tipo) {
+      req.user = req.session.user; // Asegurar que req.user esté disponible
       next();
     } else {
       res.status(403).send('Acceso denegado');
@@ -54,14 +56,14 @@ app.set('view engine', 'ejs');
 // Las rutas son archivos que contienen las rutas de la aplicación.
 // Cada ruta se asocia con un controlador que maneja la lógica de la ruta.
 // Las rutas se agrupan en archivos para mantener la aplicación organizada.
-// Las rutas se definen en el archivo routes/userRoutes.js.
 app.use('/', userRoutes);
 app.use('/', authRoutes);
 
 // Rutas específicas de alumnos y profesores
 app.use('/student', studentRoutes);
 app.use('/professor', professorRoutes);
-//app.use('/class', classRoutes);
+app.use('/classes', classRoutes); // Usar la nueva ruta
+app.use('/quizzes', quizRoutes); // Usar la nueva ruta
 
 app.get('/', (req, res) => {
   res.render('index');
@@ -91,7 +93,6 @@ app.get('/student-ranking', checkUserType('alumno'), (req, res) => {
 app.get('/student-settings', checkUserType('alumno'), (req, res) => {
   res.render('student/settings');
 });
-
 
 // Rutas para profesor
 app.get('/professor', checkUserType('profesor'), (req, res) => {
