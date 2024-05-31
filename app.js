@@ -3,7 +3,7 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const mysql = require("mysql");
+const mysql = require('mysql');
 const { createPool } = require('mysql');
 const session = require('express-session');
 
@@ -21,7 +21,7 @@ const port = 3000; // Puerto en el que correrá el servidor
 
 // Configuración de middlewares
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
+app.use(express.static('public'));
 app.use(express.json());
 app.use(session({
   secret: 'tu_secreto',
@@ -31,11 +31,11 @@ app.use(session({
 
 // Configuración de la base de datos
 const pool = createPool({
-  host: "localhost",
-  user: "root",
-  password: "root",
-  database: "quizkids",
-  port: "8889",
+  host: 'localhost',
+  user: 'root',
+  password: 'root',
+  database: 'quizkids',
+  port: '8889'
 });
 
 // Función para verificar el tipo de usuario
@@ -90,7 +90,7 @@ app.get('/student', checkUserType('alumno'), (req, res) => {
 // Rutas para obtener datos de los quizzes
 let Quizes = [];
 
-pool.query(`SELECT * FROM Quizes;`, (err, result) => {
+pool.query('SELECT * FROM Quizes;', (err, result) => {
   if (err) {
     console.log(err);
   } else {
@@ -148,53 +148,45 @@ let resumen = [];
 app.get('/take-quiz', checkUserType('alumno'), (req, res) => {
   const quizId = req.query.quizId;
   req.session.quizId = quizId;
-  
-// changes
-getid_alumno(res.locals.userId).then(id_alumno => {
 
-  pool.query(`SELECT * FROM QuizesContestados WHERE id_quiz = ? AND id_alumno = ?`, [quizId, id_alumno], (err, result) => {
-  if (err) {
-    console.log(err);
-    res.status(500).send("Error en la base de datos");
-  } 
-  
-  if (result.length > 0) {
+  getid_alumno(res.locals.userId).then(id_alumno => {
+    pool.query('SELECT * FROM QuizesContestados WHERE id_quiz = ? AND id_alumno = ?', [quizId, id_alumno], (err, result) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send('Error en la base de datos');
+      } else if (result.length > 0) {
+        res.render('student');
+        console.log(result);
+      } else {
+        pool.query('SELECT * FROM Preguntas WHERE id_quiz = ?', [quizId], (err, result) => {
+          if (err) {
+            console.log(err);
+          } else {
+            result.forEach(row => {
+              questions.push([row.contenido, row.id_pregunta]);
+            });
+          }
+        });
 
-    res.render('student');
-    console.log(result);
-
-  } else {
-
-  pool.query(`SELECT * FROM Preguntas WHERE id_quiz = ?`, [quizId], (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      result.forEach(row => {
-        questions.push([row.contenido, row.id_pregunta]);
-      });
-    }
-  });
-
-  pool.query(`SELECT * FROM Respuestas WHERE id_quiz = ?`, [quizId], (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      result.forEach(row => {
-        respuestas.push([row.id_pregunta, row.contenido, row.valor]);
-      });
-      console.log(questions, respuestas );
-      res.render('student/quiz', { questions, respuestas });
-    }
-  });
-}
+        pool.query('SELECT * FROM Respuestas WHERE id_quiz = ?', [quizId], (err, result) => {
+          if (err) {
+            console.log(err);
+          } else {
+            result.forEach(row => {
+              respuestas.push([row.id_pregunta, row.contenido, row.valor]);
+            });
+            console.log(questions, respuestas);
+            res.render('student/quiz', { questions, respuestas });
+          }
+        });
+      }
     });
-  }); 
-
+  });
 });
 
-const getid_alumno = (id_usuario) => {
+const getid_alumno = id_usuario => {
   return new Promise((resolve, reject) => {
-    const query = `SELECT id_alumno FROM Alumnos WHERE id_usuario = ?`;
+    const query = 'SELECT id_alumno FROM Alumnos WHERE id_usuario = ?';
     pool.query(query, [id_usuario], (error, results) => {
       if (error) {
         reject(error);
@@ -207,7 +199,6 @@ const getid_alumno = (id_usuario) => {
   });
 };
 
-
 // Ruta para enviar el quiz
 app.post('/submit-quiz', (req, res) => {
   let promedio = 0;
@@ -215,11 +206,11 @@ app.post('/submit-quiz', (req, res) => {
   questions.forEach((question, i) => {
     resumen.push([question, req.body[i]]);
     const confidenceLevel = req.body.confidence_level[i];
-    if (confidenceLevel === "High") {
+    if (confidenceLevel === 'High') {
       promedio += 3;
-    } else if (confidenceLevel === "Medium") {
+    } else if (confidenceLevel === 'Medium') {
       promedio += 2;
-    } else if (confidenceLevel === "Low") {
+    } else if (confidenceLevel === 'Low') {
       promedio += 1;
     }
   });
@@ -250,48 +241,29 @@ app.post('/submit-quiz', (req, res) => {
 
   const quizIdd = req.session.quizId;
 
-  getid_alumno(res.locals.userId)
-    .then(id_alumno => {
-      insertResult(id_alumno, quizIdd, score, promedio, `${resumen}`);
-
-
-
-// changes
-
-/*pool.query(`SELECT * FROM Resultados WHERE id_quiz = ? AND id_alumno = ?`, [quizIdd, id_alumno], (err, result) => {
-  if (err) {
-    console.log(err);
-    res.status(500).send("Error en la base de datos");
-  } else if (result.length > 0) {*/
+  getid_alumno(res.locals.userId).then(id_alumno => {
+    insertResult(id_alumno, quizIdd, score, promedio, `${resumen}`);
 
     const insertarEnQuizesContestados = (id_alumno, id_quiz) => {
       const insertQuery = `
         INSERT INTO QuizesContestados (id_alumno, id_quiz)
-        VALUES (?, ?)
+        VALUES (?, ?);
       `;
-    
+
       const values = [id_alumno, id_quiz];
-    
+
       pool.query(insertQuery, values, (error, results, fields) => {
         if (error) {
           console.error('Error insertando en quizes_contestados', error);
           return;
         }
         console.log('Inserción exitosa en quizes_contestados:', results);
-      
       });
     };
 
     insertarEnQuizesContestados(id_alumno, quizIdd);
   });
 });
-   
-
-//
-
-  
-
-
 
 // Función para calcular la puntuación
 function calculateScore(userAnswers) {
@@ -307,4 +279,4 @@ function calculateScore(userAnswers) {
 // Inicia el servidor
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
-}); 
+});
