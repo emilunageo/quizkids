@@ -60,12 +60,12 @@
         </form>
     </div>
     <div class="card-container">
-        <% for (var i = 0; i < Quizes.length; i++) { %>
-            <div class="card <%= Quizes[i].contestado ? 'contestado' : '' %>">
-                <a href="<%= Quizes[i].contestado ? '#' : '/take-quiz?quizId=' + Quizes[i].id %>" 
-                   data-quiz-id="<%= Quizes[i].id %>" 
-                   class="<%= Quizes[i].contestado ? 'contestados' : '' %>">
-                   <%= Quizes[i].nombre %>
+        <% for (var i = 0; i < quizzes.length; i++) { %>
+            <div class="card <%= quizzes[i].contestado ? 'contestado' : '' %>">
+                <a href="<%= quizzes[i].contestado ? '#' : '/take-quiz?quizId=' + quizzes[i].id %>" 
+                   data-quiz-id="<%= quizzes[i].id %>" 
+                   class="<%= quizzes[i].contestado ? 'contestados' : '' %>">
+                   <%= quizzes[i].nombre %>
                 </a>
             </div>
         <% } %>

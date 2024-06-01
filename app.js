@@ -129,12 +129,19 @@ app.get('/testit', checkUserType('alumno'), (req, res) => {
             console.log(err);
             res.status(500).send('Error en la base de datos');
           } else {
-            const Quizes = result.map(row => ({
+            let quizzes = result.map(row => ({
               nombre: row.nombre,
               id: row.id_quiz,
               categoria: row.categoria,
               contestado: contestados.includes(row.id_quiz)
             }));
+
+            // Ordenar los quizzes para que los contestados estén al final
+            quizzes.sort((a, b) => {
+              if (a.contestado && !b.contestado) return 1;
+              if (!a.contestado && b.contestado) return -1;
+              return 0;
+            });
 
             pool.query('SELECT nombre FROM Categorias', (err, categoriasResult) => {
               if (err) {
@@ -142,7 +149,7 @@ app.get('/testit', checkUserType('alumno'), (req, res) => {
                 res.status(500).send('Error en la base de datos');
               } else {
                 const Categorias = categoriasResult.map(row => row.nombre);
-                res.render('student/testit', { Quizes, Categorias, categoriaSeleccionada });
+                res.render('student/testit', { quizzes, Categorias, categoriaSeleccionada });
               }
             });
           }
@@ -162,8 +169,19 @@ app.get('/student-profile', checkUserType('alumno'), (req, res) => {
   res.render('student/profile');
 });
 
-app.get('/student-ranking', checkUserType('alumno'), (req, res) => {
-  res.render('student/ranking');
+app.get('/student-ranking', (req, res) => {
+  const query = `
+    SELECT A.nombre, R.id_alumno, SUM(R.puntaje) AS total_puntaje
+    FROM Resultados R
+    JOIN Alumnos A ON R.id_alumno = A.id_alumno
+    GROUP BY R.id_alumno, A.nombre
+    ORDER BY total_puntaje DESC;
+  `;
+  
+  pool.query(query, (error, results) => {
+    if (error) throw error;
+    res.render('student/ranking', { ranking: results });
+  });
 });
 
 app.get('/student-settings', checkUserType('alumno'), (req, res) => {
