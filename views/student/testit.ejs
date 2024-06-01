@@ -4,28 +4,84 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test it !</title>
+    <title>Test it!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .filter-container {
+            margin-bottom: 20px;
+        }
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #dddddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.2s;
+            width: 200px;
+            opacity: 1;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .card a {
+            color: #333333;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .card.contestado {
+            opacity: 0.5;
+        }
+    </style>
 </head>
 <body>
-    <% for (var i = 0; i < Quizes.length; i++) { %>
-        <a href="/take-quiz?quizId=<%= Quizes[i].id %>"><%= Quizes[i].nombre %></a>
-        <% console.log(Quizes) %>
-    <% } %>
-    
+    <div class="filter-container">
+        <form id="filterForm">
+            <label for="categoria">Filtrar por categoría:</label>
+            <select id="categoria" name="categoria" onchange="document.getElementById('filterForm').submit()">
+                <option value="Todas" <%= categoriaSeleccionada === 'Todas' ? 'selected' : '' %>>Todas</option>
+                <% for (var i = 0; i < Categorias.length; i++) { %>
+                    <option value="<%= Categorias[i] %>" <%= categoriaSeleccionada === Categorias[i] ? 'selected' : '' %>><%= Categorias[i] %></option>
+                <% } %>
+            </select>
+        </form>
+    </div>
+    <div class="card-container">
+        <% for (var i = 0; i < Quizes.length; i++) { %>
+            <div class="card <%= Quizes[i].contestado ? 'contestado' : '' %>">
+                <a href="<%= Quizes[i].contestado ? '#' : '/take-quiz?quizId=' + Quizes[i].id %>" 
+                   data-quiz-id="<%= Quizes[i].id %>" 
+                   class="<%= Quizes[i].contestado ? 'contestados' : '' %>">
+                   <%= Quizes[i].nombre %>
+                </a>
+            </div>
+        <% } %>
+    </div>
+
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var quizLinks = document.querySelectorAll('a[data-quiz-id]');
+        var quizLinks = document.querySelectorAll('a.contestados');
       
         quizLinks.forEach(function(link) {
             link.addEventListener('click', function(event) {
-                // No se llama a event.preventDefault(); para permitir la navegación
-                var quizId = this.getAttribute('data-quiz-id');
-                // Aquí puedes hacer lo que necesites con el ID del quiz, como enviarlo a la ruta "/take-quiz"
+                event.preventDefault();
+                alert('Este quiz ya ha sido contestado.');
             });
         });
     });
     </script>
-    
-
 </body>
 </html>

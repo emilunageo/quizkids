@@ -103,9 +103,60 @@ pool.query('SELECT * FROM Quizes;', (err, result) => {
   }
 });
 
+// Nueva ruta para obtener quizzes por categoría
 app.get('/testit', checkUserType('alumno'), (req, res) => {
-  res.render('student/testit', { Quizes: Quizes });
+  const userId = res.locals.userId;
+  const categoriaSeleccionada = req.query.categoria || 'Todas';
+
+  getid_alumno(userId).then(id_alumno => {
+    pool.query('SELECT id_quiz FROM QuizesContestados WHERE id_alumno = ?', [id_alumno], (err, result) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send('Error en la base de datos');
+      } else {
+        const contestados = result.map(row => row.id_quiz);
+
+        let query = 'SELECT Quizes.*, Categorias.nombre AS categoria FROM Quizes JOIN Categorias ON Quizes.id_categoria = Categorias.id_categoria';
+        let queryParams = [];
+
+        if (categoriaSeleccionada !== 'Todas') {
+          query += ' WHERE Categorias.nombre = ?';
+          queryParams.push(categoriaSeleccionada);
+        }
+
+        pool.query(query, queryParams, (err, result) => {
+          if (err) {
+            console.log(err);
+            res.status(500).send('Error en la base de datos');
+          } else {
+            const Quizes = result.map(row => ({
+              nombre: row.nombre,
+              id: row.id_quiz,
+              categoria: row.categoria,
+              contestado: contestados.includes(row.id_quiz)
+            }));
+
+            pool.query('SELECT nombre FROM Categorias', (err, categoriasResult) => {
+              if (err) {
+                console.log(err);
+                res.status(500).send('Error en la base de datos');
+              } else {
+                const Categorias = categoriasResult.map(row => row.nombre);
+                res.render('student/testit', { Quizes, Categorias, categoriaSeleccionada });
+              }
+            });
+          }
+        });
+      }
+    });
+  }).catch(err => {
+    console.log(err);
+    res.status(500).send('Error en la base de datos');
+  });
 });
+
+
+
 
 app.get('/student-profile', checkUserType('alumno'), (req, res) => {
   res.render('student/profile');
@@ -148,6 +199,8 @@ let resumen = [];
 app.get('/take-quiz', checkUserType('alumno'), (req, res) => {
   const quizId = req.query.quizId;
   req.session.quizId = quizId;
+  questions = [];
+  respuestas = [];
 
   getid_alumno(res.locals.userId).then(id_alumno => {
     pool.query('SELECT * FROM QuizesContestados WHERE id_quiz = ? AND id_alumno = ?', [quizId, id_alumno], (err, result) => {
