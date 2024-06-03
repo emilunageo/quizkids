@@ -2,10 +2,10 @@ const mysql = require("mysql2");
 
 const connection = mysql.createConnection({
   host: "127.0.0.1",
-  port: "8889", // Puerto de MySQL en MAMP 8889
+  port: "8889", // Puerto de MySQL en MAMP 8889 3306
   user: "root",
   password: 'root',
-  database: "pruebas",
+  database: "quizkids",
 });
 
 connection.connect((error) => {

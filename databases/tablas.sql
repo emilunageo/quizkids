@@ -12,8 +12,6 @@ CREATE TABLE Usuarios (
     fecha_de_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-
-
 CREATE TABLE Profesores (
     id_profesor INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT,
@@ -59,9 +57,19 @@ CREATE TABLE Preguntas (
 CREATE TABLE Respuestas (
     id_respuesta INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     id_pregunta INT,
+    id_quiz INT,
     contenido TEXT,
     valor INT,
-    FOREIGN KEY (id_pregunta) REFERENCES Preguntas(id_pregunta)
+    FOREIGN KEY (id_pregunta) REFERENCES Preguntas(id_pregunta),
+    FOREIGN KEY (id_quiz) REFERENCES Quizes(id_quiz)
+);
+
+
+CREATE TABLE QuizesContestados (
+    id_alumno INT,
+    id_quiz INT,
+    FOREIGN KEY (id_alumno) REFERENCES Alumnos(id_alumno),
+    FOREIGN KEY (id_quiz) REFERENCES Quizes(id_quiz)
 );
 
 CREATE TABLE Resultados (
