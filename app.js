@@ -14,12 +14,15 @@ const authRoutes = require('./routes/authRoutes');
 // Rutas específicas de alumnos y profesores
 const studentRoutes = require('./routes/studentRoutes');
 const professorRoutes = require('./routes/professorRoutes');
+const classRoutes = require('./routes/classes'); // Importar la nueva ruta
+const quizRoutes = require('./routes/quizzes'); // Importar la nueva ruta
+
 
 // Crear la aplicación de Express
 const app = express();
 const port = 3000; // Puerto en el que correrá el servidor
 
-// Configuración de middlewares
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(express.json());
@@ -42,6 +45,7 @@ const pool = createPool({
 function checkUserType(tipo) {
   return function (req, res, next) {
     if (req.session.tipoDeUsuario === tipo) {
+      req.user = req.session.user; // Asegurar que req.user esté disponible
       next();
     } else {
       res.status(403).send('Acceso denegado');
@@ -53,11 +57,15 @@ function checkUserType(tipo) {
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-// Cargar rutas
+
 app.use('/', userRoutes);
 app.use('/', authRoutes);
 app.use('/student', studentRoutes);
 app.use('/professor', professorRoutes);
+
+app.use('/classes', classRoutes); // Usar la nueva ruta
+app.use('/quizzes', quizRoutes); // Usar la nueva ruta
+
 
 // Rutas estáticas
 app.use(express.static('public'));
@@ -188,7 +196,6 @@ app.get('/student-settings', checkUserType('alumno'), (req, res) => {
   res.render('student/settings');
 });
 
-// Rutas específicas para profesores
 app.get('/professor', checkUserType('profesor'), (req, res) => {
   res.render('professor/index');
 });

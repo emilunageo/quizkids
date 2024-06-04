@@ -35,12 +35,12 @@ userController.register = async (req, res) => {
       const userId = result.insertId;
 
       if (req.body.tipoUsuario === "alumno") {
-        const alumnoData = { id_usuario: userId };
+        const alumnoData = { id_usuario: userId, nombre: req.body.nombre };
         Student.add(alumnoData, () => {
           res.redirect("/");
         });
       } else if (req.body.tipoUsuario === "profesor") {
-        const profesorData = { id_usuario: userId };
+        const profesorData = { id_usuario: userId, nombre: req.body.nombre };
         Professor.add(profesorData, () => {
           res.redirect("/");
         });
