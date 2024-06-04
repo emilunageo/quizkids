@@ -1,10 +1,13 @@
-// Descripción: Archivo principal de la aplicación.
-// En este archivo se configuran las rutas y se inicia el servidor.
+// Archivo principal de la aplicación.
+// Configuración de rutas e inicio del servidor.
 const express = require('express');
 const path = require('path');
+const bodyParser = require('body-parser');
+const mysql = require('mysql');
+const { createPool } = require('mysql');
+const session = require('express-session');
 
 // Rutas de usuarios y autenticación
-const session = require('express-session');
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
 
@@ -14,23 +17,31 @@ const professorRoutes = require('./routes/professorRoutes');
 const classRoutes = require('./routes/classes'); // Importar la nueva ruta
 const quizRoutes = require('./routes/quizzes'); // Importar la nueva ruta
 
+
 // Crear la aplicación de Express
 const app = express();
 const port = 3000; // Puerto en el que correrá el servidor
 
-// Middleware para parsear el cuerpo de las peticiones HTTP (req.body) en JSON y texto plano (req.text).
-// Esta línea es necesaria para poder recibir datos de formularios HTML.
-app.use(express.urlencoded({ extended: true }));
-// Middleware para parsear el cuerpo de las peticiones HTTP (req.body) en JSON.
-app.use(express.json());
 
-// Configuración de la sesión
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));
+app.use(express.json());
 app.use(session({
   secret: 'tu_secreto',
   resave: false,
   saveUninitialized: true
 }));
 
+// Configuración de la base de datos
+const pool = createPool({
+  host: 'localhost',
+  user: 'root',
+  password: 'root',
+  database: 'quizkids',
+  port: '8889'
+});
+
+// Función para verificar el tipo de usuario
 function checkUserType(tipo) {
   return function (req, res, next) {
     if (req.session.tipoDeUsuario === tipo) {
@@ -42,33 +53,29 @@ function checkUserType(tipo) {
   };
 }
 
-// Servir archivos estáticos
-// Los archivos estáticos son archivos que no cambian, como imágenes, hojas de estilo y scripts.
-app.use(express.static('public'));
-
-// Motor de plantillas para las vistas
-// Las vistas son archivos HTML que se renderizan en el servidor.
+// Configuración del motor de plantillas
 app.set('views', path.join(__dirname, 'views'));
-// El motor de plantillas es EJS (Embedded JavaScript), que permite incrustar código JavaScript en HTML.
 app.set('view engine', 'ejs');
 
-// Usa las rutas de usuarios y autenticación
-// Las rutas son archivos que contienen las rutas de la aplicación.
-// Cada ruta se asocia con un controlador que maneja la lógica de la ruta.
-// Las rutas se agrupan en archivos para mantener la aplicación organizada.
+
 app.use('/', userRoutes);
 app.use('/', authRoutes);
-
-// Rutas específicas de alumnos y profesores
 app.use('/student', studentRoutes);
 app.use('/professor', professorRoutes);
+
 app.use('/classes', classRoutes); // Usar la nueva ruta
 app.use('/quizzes', quizRoutes); // Usar la nueva ruta
 
+
+// Rutas estáticas
+app.use(express.static('public'));
+
+// Ruta de inicio
 app.get('/', (req, res) => {
   res.render('index');
 });
 
+// Rutas para la autenticación
 app.get('/signup', (req, res) => {
   res.render('signup');
 });
@@ -77,24 +84,118 @@ app.get('/login', (req, res) => {
   res.render('login');
 });
 
-// Rutas para alumno
+// Middleware para añadir userId a res.locals
+app.use((req, res, next) => {
+  res.locals.userId = req.session.userId;
+  next();
+});
+
+// Rutas específicas para alumnos
 app.get('/student', checkUserType('alumno'), (req, res) => {
   res.render('student/index');
 });
+
+// Rutas para obtener datos de los quizzes
+let Quizes = [];
+
+pool.query('SELECT * FROM Quizes;', (err, result) => {
+  if (err) {
+    console.log(err);
+  } else {
+    result.forEach(row => {
+      Quizes.push({
+        nombre: row.nombre,
+        id: row.id_quiz
+      });
+    });
+  }
+});
+
+// Nueva ruta para obtener quizzes por categoría
+app.get('/testit', checkUserType('alumno'), (req, res) => {
+  const userId = res.locals.userId;
+  const categoriaSeleccionada = req.query.categoria || 'Todas';
+
+  getid_alumno(userId).then(id_alumno => {
+    pool.query('SELECT id_quiz FROM QuizesContestados WHERE id_alumno = ?', [id_alumno], (err, result) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send('Error en la base de datos');
+      } else {
+        const contestados = result.map(row => row.id_quiz);
+
+        let query = 'SELECT Quizes.*, Categorias.nombre AS categoria FROM Quizes JOIN Categorias ON Quizes.id_categoria = Categorias.id_categoria';
+        let queryParams = [];
+
+        if (categoriaSeleccionada !== 'Todas') {
+          query += ' WHERE Categorias.nombre = ?';
+          queryParams.push(categoriaSeleccionada);
+        }
+
+        pool.query(query, queryParams, (err, result) => {
+          if (err) {
+            console.log(err);
+            res.status(500).send('Error en la base de datos');
+          } else {
+            let quizzes = result.map(row => ({
+              nombre: row.nombre,
+              id: row.id_quiz,
+              categoria: row.categoria,
+              contestado: contestados.includes(row.id_quiz)
+            }));
+
+            // Ordenar los quizzes para que los contestados estén al final
+            quizzes.sort((a, b) => {
+              if (a.contestado && !b.contestado) return 1;
+              if (!a.contestado && b.contestado) return -1;
+              return 0;
+            });
+
+            pool.query('SELECT nombre FROM Categorias', (err, categoriasResult) => {
+              if (err) {
+                console.log(err);
+                res.status(500).send('Error en la base de datos');
+              } else {
+                const Categorias = categoriasResult.map(row => row.nombre);
+                res.render('student/testit', { quizzes, Categorias, categoriaSeleccionada });
+              }
+            });
+          }
+        });
+      }
+    });
+  }).catch(err => {
+    console.log(err);
+    res.status(500).send('Error en la base de datos');
+  });
+});
+
+
+
 
 app.get('/student-profile', checkUserType('alumno'), (req, res) => {
   res.render('student/profile');
 });
 
-app.get('/student-ranking', checkUserType('alumno'), (req, res) => {
-  res.render('student/ranking');
+app.get('/student-ranking', (req, res) => {
+  const query = `
+    SELECT A.nombre, R.id_alumno, SUM(R.puntaje) AS total_puntaje
+    FROM Resultados R
+    JOIN Alumnos A ON R.id_alumno = A.id_alumno
+    GROUP BY R.id_alumno, A.nombre
+    ORDER BY total_puntaje DESC;
+  `;
+  
+  pool.query(query, (error, results) => {
+    if (error) throw error;
+    res.render('student/ranking', { ranking: results });
+  });
 });
 
 app.get('/student-settings', checkUserType('alumno'), (req, res) => {
   res.render('student/settings');
 });
 
-// Rutas para profesor
 app.get('/professor', checkUserType('profesor'), (req, res) => {
   res.render('professor/index');
 });
@@ -114,6 +215,144 @@ app.get('/professor-create-quiz', checkUserType('profesor'), (req, res) => {
 app.get('/professor-settings', checkUserType('profesor'), (req, res) => {
   res.render('professor/settings');
 });
+
+// Ruta para tomar un quiz
+let questions = [];
+let respuestas = [];
+let resumen = [];
+
+app.get('/take-quiz', checkUserType('alumno'), (req, res) => {
+  const quizId = req.query.quizId;
+  req.session.quizId = quizId;
+  questions = [];
+  respuestas = [];
+
+  getid_alumno(res.locals.userId).then(id_alumno => {
+    pool.query('SELECT * FROM QuizesContestados WHERE id_quiz = ? AND id_alumno = ?', [quizId, id_alumno], (err, result) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send('Error en la base de datos');
+      } else if (result.length > 0) {
+        res.render('student');
+        console.log(result);
+      } else {
+        pool.query('SELECT * FROM Preguntas WHERE id_quiz = ?', [quizId], (err, result) => {
+          if (err) {
+            console.log(err);
+          } else {
+            result.forEach(row => {
+              questions.push([row.contenido, row.id_pregunta]);
+            });
+          }
+        });
+
+        pool.query('SELECT * FROM Respuestas WHERE id_quiz = ?', [quizId], (err, result) => {
+          if (err) {
+            console.log(err);
+          } else {
+            result.forEach(row => {
+              respuestas.push([row.id_pregunta, row.contenido, row.valor]);
+            });
+            console.log(questions, respuestas);
+            res.render('student/quiz', { questions, respuestas });
+          }
+        });
+      }
+    });
+  });
+});
+
+const getid_alumno = id_usuario => {
+  return new Promise((resolve, reject) => {
+    const query = 'SELECT id_alumno FROM Alumnos WHERE id_usuario = ?';
+    pool.query(query, [id_usuario], (error, results) => {
+      if (error) {
+        reject(error);
+      } else if (results.length > 0) {
+        resolve(results[0].id_alumno);
+      } else {
+        reject(new Error('No se encontró ningún alumno con el ID de usuario proporcionado.'));
+      }
+    });
+  });
+};
+
+// Ruta para enviar el quiz
+app.post('/submit-quiz', (req, res) => {
+  let promedio = 0;
+
+  questions.forEach((question, i) => {
+    resumen.push([question, req.body[i]]);
+    const confidenceLevel = req.body.confidence_level[i];
+    if (confidenceLevel === 'High') {
+      promedio += 3;
+    } else if (confidenceLevel === 'Medium') {
+      promedio += 2;
+    } else if (confidenceLevel === 'Low') {
+      promedio += 1;
+    }
+  });
+
+  promedio /= questions.length;
+  const score = calculateScore(req.body);
+  res.render('student/result', { score });
+
+  questions = [];
+  respuestas = [];
+
+  const insertResult = (id_alumno, id_quiz, puntaje, nivel_confianza, resultados) => {
+    const query = `
+      INSERT INTO Resultados (id_alumno, id_quiz, puntaje, nivel_confianza, resultados)
+      VALUES (?, ?, ?, ?, ?);
+    `;
+
+    const values = [id_alumno, id_quiz, puntaje, nivel_confianza, resultados];
+
+    pool.query(query, values, (error, results) => {
+      if (error) {
+        console.error('Error ejecutando la consulta', error);
+      } else {
+        console.log('Resultado insertado:', results.insertId);
+      }
+    });
+  };
+
+  const quizIdd = req.session.quizId;
+
+  getid_alumno(res.locals.userId).then(id_alumno => {
+    insertResult(id_alumno, quizIdd, score, promedio, `${resumen}`);
+
+    const insertarEnQuizesContestados = (id_alumno, id_quiz) => {
+      const insertQuery = `
+        INSERT INTO QuizesContestados (id_alumno, id_quiz)
+        VALUES (?, ?);
+      `;
+
+      const values = [id_alumno, id_quiz];
+
+      pool.query(insertQuery, values, (error, results, fields) => {
+        if (error) {
+          console.error('Error insertando en quizes_contestados', error);
+          return;
+        }
+        console.log('Inserción exitosa en quizes_contestados:', results);
+      });
+    };
+
+    insertarEnQuizesContestados(id_alumno, quizIdd);
+  });
+});
+
+// Función para calcular la puntuación
+function calculateScore(userAnswers) {
+  let score = 0;
+  for (const answer in userAnswers) {
+    if (userAnswers[answer] === '1') {
+      score++;
+    }
+  }
+  return score;
+}
 
 // Inicia el servidor
 app.listen(port, () => {
