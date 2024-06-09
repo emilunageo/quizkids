@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple Choice Quiz</title>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>Welcome to the Quiz!</h1>
+        <form action="/submit-quiz" method="POST">
+            <% for (var i = 0; i < questions.length; i++) { %>
+                <h3><%= questions[i][0] %></h3>
+                <% for (var j = 0; j < respuestas.length; j++) { %>
+                    <% if (questions[i][1] == respuestas[j][0]) { %>
+                        <input type="radio" name="<%= i %>" value="<%= respuestas[j][2] %>">
+                        <label><%= respuestas[j][1] %></label><br>
+                    <% } %>
+                <% } %>
+                <label for="confidence-level-<%= i %>">Confidence Level:</label>
+                <select id="confidence-level-<%= i %>" name="confidence_level">
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                </select><br>
+            <% } %>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+</body>
+</html>
